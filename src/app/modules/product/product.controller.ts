@@ -18,7 +18,18 @@ const productGetBD = catchAsync(async (req: Request, res: Response) => {
     });
   });
 
+const productStoreBD = catchAsync(async (req: Request, res: Response) => {
+    const result = await productService.productStoreBD(req.body)
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: 'Products Store succesfully',
+      data: result,
+    });
+  });
+
   
   export const productController = {
-    productGetBD
+    productGetBD,
+    productStoreBD 
   };

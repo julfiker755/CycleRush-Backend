@@ -8,7 +8,7 @@ const productSchema = new Schema<Tproduct>({
     category: { type: String, required: true },
     frameMaterial: { type: String, required: true },
     wheelSize: { type: Number, required: true },
-    quantity: { type: Number, required: true },
+    inStock: { type: Number, required: true },
     description: { type: String, required: true },
     images: { type: [String], required: true }
 }, {

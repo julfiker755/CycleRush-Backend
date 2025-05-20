@@ -7,6 +7,7 @@ const catchAsync = (fn: RequestHandler) => {
       await fn(req, res, next);
     } catch (err:any) {
       next(err);
+      
     }
   };
 };
