@@ -13,7 +13,7 @@ app.use('/api/v1',router);
 
 
 app.get('/', (req, res) => {
-  res.send('Health Care Sql server running');
+  res.send('Cycle Rust server running');
 });
 
 app.use(NotFound)
