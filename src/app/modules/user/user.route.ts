@@ -1,6 +1,4 @@
 import express from 'express';
-import ValidateRequest from '../../middleware/validateRequest';
-import auth from '../../middleware/auth';
 import { userController } from './user.controller';
 
 
@@ -10,6 +8,7 @@ router.get(
   '/',
   userController.UserGetBD
 );
+router.post("/register", userController.userStoreBD);
 router.post(
   '/login',
   userController.loginUser

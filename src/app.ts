@@ -7,12 +7,18 @@ import cookieParser from 'cookie-parser'
 const app: Application = express();
 import cors from 'cors';
 
+// Configure middleware for parsing JSON and URL-encoded data
 app.use(express.json());
-app.use(cors({ origin: "*" }));
+app.use(express.urlencoded({ extended: true }));
 
-app.use(express.urlencoded({extended:true}))
-app.use(cookieParser())
+// Enable CORS with specific origin
+app.use(cors({
+origin:[ 'http://localhost:5173','https://cycle-rush.vercel.app'],
+  credentials: true
+}));
 
+// Parse cookies in requests
+app.use(cookieParser());
 app.use('/api/v1',router);
 
 

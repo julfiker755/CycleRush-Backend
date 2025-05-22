@@ -28,8 +28,30 @@ const productStoreBD = catchAsync(async (req: Request, res: Response) => {
     });
   });
 
+const singleProductBD = catchAsync(async (req: Request, res: Response) => {
+    const result = await productService.singleProductBD(req.params.id)
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: 'Single Products Info succesfully',
+      data: result,
+    });
+  });
+
+const deleteProductBD= catchAsync(async (req: Request, res: Response) => {
+    const result = await productService.deleteProductBD(req.params.id)
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: 'Product delete succesfully',
+      data: result,
+    });
+  });
+
   
   export const productController = {
     productGetBD,
-    productStoreBD 
+    productStoreBD,
+    singleProductBD,
+    deleteProductBD
   };

@@ -22,7 +22,6 @@ const productGetBD=async (query: Record<string, unknown>) => {
 
 // productStoreBD
 const productStoreBD=async (payload:Partial<Tproduct>,file:any) => {
-  // image upload
   if (file && file?.length > 0) {
     const imgUrls: string[] = [];
     for (const el of file) {
@@ -37,9 +36,22 @@ const productStoreBD=async (payload:Partial<Tproduct>,file:any) => {
   return result
 };
 
+// single product
+const singleProductBD=async (id:string) => {
+  const result=await productModel.findById(id)
+  return result
+};
+
+// delete product
+const deleteProductBD=async (id:string) => {
+  const result=await productModel.findByIdAndDelete(id)
+  return result
+};
 
 
 export const productService = {
   productGetBD,
-  productStoreBD
+  productStoreBD,
+  singleProductBD,
+  deleteProductBD
 };

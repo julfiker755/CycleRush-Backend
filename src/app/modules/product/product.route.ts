@@ -12,5 +12,7 @@ router.post(
     return productController.productStoreBD(req, res, next);
   },
 );
+router.get('/:id', productController.singleProductBD);
+router.delete('/:id', productController.deleteProductBD);
 
 export const productRoutes = router;

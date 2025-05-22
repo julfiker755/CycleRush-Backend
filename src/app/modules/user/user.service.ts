@@ -3,8 +3,15 @@ import { BcryptCompare} from '../../../ulits';
 import QueryBuilder from '../../builder/queryBuilder';
 import config from '../../config';
 import ApiCustomError from '../../errors/apiCustomError';
+import { Role} from './user.constants';
 import { userModel } from './user.model';
 
+
+const userStoreBD = async (payload: any) => {
+  Object.assign(payload, {role:Role.customer})
+  const result = await userModel.create(payload);
+  return result;
+};
 
 const UserGetBD = async (query: Record<string, unknown>) => {
   const userQuery = new QueryBuilder(userModel.find(), query)
@@ -21,6 +28,7 @@ const UserGetBD = async (query: Record<string, unknown>) => {
 
 const loginUserBD = async (payload: any) => {
     const {email, password} = payload;
+    console.log(payload)
   const result = await userModel.findOne({ email:email });
   if (!result) {
     throw new ApiCustomError('user email Error', [
@@ -65,6 +73,7 @@ const loginUserBD = async (payload: any) => {
   };
 };
 export const userService = {
+  userStoreBD,
   UserGetBD,
   loginUserBD,
 };

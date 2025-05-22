@@ -6,6 +6,15 @@ import config from '../../config';
 import { userService } from './user.service';
 
 
+const userStoreBD = catchAsync(async (req: Request, res: Response) => {
+  const result = await userService.userStoreBD(req.body)
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: 'User created succesfully',
+    data: result,
+  });
+})
 
 const UserGetBD= catchAsync(async (req: Request, res: Response) => {
   const results= await userService.UserGetBD(req.query)
@@ -22,7 +31,7 @@ const UserGetBD= catchAsync(async (req: Request, res: Response) => {
 const loginUser= catchAsync(async (req: Request, res: Response) => {
   const result = await userService.loginUserBD(req.body)
   const {refreshToken,accessToken,needsPasswordChange}=result
-  res.cookie('accessToken', accessToken, {
+   res.cookie('accessToken', accessToken, {
     secure: config.node_env  === 'production',
     httpOnly: true,
     sameSite: 'none',
@@ -41,6 +50,7 @@ const loginUser= catchAsync(async (req: Request, res: Response) => {
 
 
 export const userController = {
+  userStoreBD,
   UserGetBD,
   loginUser
 };
