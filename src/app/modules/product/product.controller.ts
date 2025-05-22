@@ -19,7 +19,7 @@ const productGetBD = catchAsync(async (req: Request, res: Response) => {
   });
 
 const productStoreBD = catchAsync(async (req: Request, res: Response) => {
-    const result = await productService.productStoreBD(req.body)
+    const result = await productService.productStoreBD(req.body,req.files)
     sendResponse(res, {
       statusCode: httpStatus.OK,
       success: true,
