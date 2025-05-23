@@ -32,19 +32,29 @@ const loginUser= catchAsync(async (req: Request, res: Response) => {
   const result = await userService.loginUserBD(req.body)
   const {refreshToken,accessToken,needsPasswordChange}=result
    res.cookie('accessToken', accessToken, {
-    secure: config.node_env  === 'production',
     httpOnly: true,
-    sameSite: 'none',
-    maxAge: 1000 * 60 * 60 * 24 * 365,
+    secure: config.node_env === "production" ? true : false,
+    sameSite: config.node_env === "production" ? "none" : "strict",
   });
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
     message: 'User Login  succesfully',
     data: {
-      refreshToken,
+      accessToken:refreshToken,
       needsPasswordChange,
     },
+  });
+});
+
+const refreshTokenBD = catchAsync(async (req: Request, res: Response) => {
+  const { accessToken } = req.cookies;
+  const result = await userService.refreshTokenBD(accessToken);
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Refresh Token in successfully",
+    data: result,
   });
 });
 
@@ -52,5 +62,6 @@ const loginUser= catchAsync(async (req: Request, res: Response) => {
 export const userController = {
   userStoreBD,
   UserGetBD,
-  loginUser
+  loginUser,
+  refreshTokenBD
 };

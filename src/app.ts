@@ -27,16 +27,16 @@ app.get('/', (req, res) => {
 });
 
 app.use(NotFound)
-// app.use(globalErrorHandler)
+app.use(globalErrorHandler)
 
-app.use((err:any, req:any, res:any, next:any) => {
-  console.log(err)
-    res.status(500).json({
-      success: false,
-      message: err.toString() || "Something went wrong",
-      error: err
-    });
-  });
+// app.use((err:any, req:any, res:any, next:any) => {
+//   console.log(err)
+//     res.status(500).json({
+//       success: false,
+//       message: err.toString() || "Something went wrong",
+//       error: err
+//     });
+//   });
 
 
 

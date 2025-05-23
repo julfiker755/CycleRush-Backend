@@ -7,8 +7,8 @@ import { wishService } from "./wish.service";
 
 
 
-const wishGetBD = catchAsync(async (req: Request, res: Response) => {
-    const results = await wishService.wishGetBD(req.query)
+const wishGetBD = catchAsync(async (req: Request & {user?:any}, res: Response) => {
+    const results = await wishService.wishGetBD(req.query,req.user)
     const {result,meta}:any=results
     sendResponse(res, {
       statusCode: httpStatus.OK,
@@ -29,10 +29,20 @@ const wishStoreBD = catchAsync(async (req: Request, res: Response) => {
     });
   });
 
+const deleteWishBD = catchAsync(async (req: Request, res: Response) => {
+  const {id}=req.params
+    const result = await wishService.deleteWishBD(id)
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: 'Wish Delete succesfully',
+      data: result,
+    });
+  });
 
 
-  
   export const wishController = {
     wishGetBD,
-    wishStoreBD
+    wishStoreBD,
+    deleteWishBD
   };

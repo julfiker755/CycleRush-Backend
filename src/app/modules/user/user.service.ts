@@ -72,8 +72,39 @@ const loginUserBD = async (payload: any) => {
     needsPasswordChange: result?.needsPasswordChange,
   };
 };
+
+// refreshToken
+const refreshTokenBD = async (token: string) => {
+  let decodedToken;
+  try {
+    decodedToken = jwtHelpers.varifyToken(token, config.jwt.secret);
+  } catch (err) {
+    throw new Error("You do not have permission.");
+  }
+  const isUserExsis = await userModel.findOne({ email: decodedToken.email });
+  if (!isUserExsis) {
+    throw new Error("You do not have permission.");
+  }
+  const accessToken= jwtHelpers.generateToken(
+    {
+      email: isUserExsis.email,
+      role: isUserExsis.role,
+    },
+    config.jwt.secret,
+    config.jwt.refreshTokenExp,
+  );
+
+  return {
+    accessToken,
+    needPasswordChange:false,
+  };
+};
+
+
+
 export const userService = {
   userStoreBD,
   UserGetBD,
   loginUserBD,
+  refreshTokenBD 
 };

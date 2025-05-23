@@ -13,6 +13,10 @@ router.post(
   '/login',
   userController.loginUser
 );
+router.get(
+  '/refresh-token',
+  userController.refreshTokenBD
+);
 // router.post(
 //   '/change-password',
 //   auth(USER_ROLE.admin,USER_ROLE.faculty,USER_ROLE.student),

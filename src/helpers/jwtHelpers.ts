@@ -10,7 +10,7 @@ const generateToken=(payload:any,secret:any,expiresIn:any)=>{
 return token
 }
 
-const varifyToken=(token:string,secret:Secret)=>{
+const varifyToken=(token:string,secret:any)=>{
    return jwt.verify(token, secret) as JwtPayload
 }
 

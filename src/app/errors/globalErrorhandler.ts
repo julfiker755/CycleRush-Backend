@@ -1,9 +1,9 @@
 import { ErrorRequestHandler, NextFunction, Request, Response } from 'express';
-import { TErrorSource } from '../interface/error';
 import ApiCustomError from './apiCustomError';
 import { hanlde } from './handleErrors';
 import ApiError from './apiError';
 import { ZodError } from 'zod';
+
 
 
 const globalErrorHandler: ErrorRequestHandler = (
@@ -14,7 +14,7 @@ const globalErrorHandler: ErrorRequestHandler = (
 ): any => {
   let statusCode = 500;
   let message = err.message || 'Something went Wrong!';
-  let errors: TErrorSource = hanlde.Errors
+  let errors:any = hanlde.Errors
   // errors hanlde
   if (err instanceof ZodError) {
     const result = hanlde.ZodErrors(err)
@@ -47,7 +47,6 @@ const globalErrorHandler: ErrorRequestHandler = (
     message = result.message;
     errors = result.errorSources;
   }
-
   return res.status(statusCode).json({
     success: false,
     message: message,
