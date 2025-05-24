@@ -12,7 +12,7 @@ const wishGetBD = async (
   const adminQuery = new QueryBuilder(
     wishModel
       .find({ email: user.email })
-      .populate({ path: 'wishId', select: '-_id' })
+      .populate("wishId")
       .select('-email')
       .lean(),
     query,
@@ -23,15 +23,14 @@ const wishGetBD = async (
   const meta = await adminQuery.countTotal();
 
   const result2= result.map((item) => {
-    const { _id: _wishId, ...wishData } = item.wishId || {};
+    const { _id:wishId, ...wishData } = item.wishId || {};
     return {
       _id: item._id,
+      wishId,
       ...wishData,
     };
   });
   
- 
-
   return {
     result: result2,
     meta,
@@ -39,12 +38,16 @@ const wishGetBD = async (
 };
 
 // wishStoreBD
-const wishStoreBD = async (payload: Partial<Twish>) => {
-  const userInfo = await userModel.findOne({ email: payload.email });
+const wishStoreBD = async (payload: Partial<Twish>,user:Tuser) => {
+  const wishPayload ={
+    ...payload,
+    email: user.email,
+  };
+  const userInfo = await userModel.findOne({ email:user.email });
   if (!userInfo) throw new Error('user not found');
-  const isExist = await wishModel.findOne(payload);
+  const isExist = await wishModel.findOne(wishPayload);
   if (isExist) throw new Error('Already added to wishlist');
-  const result = await wishModel.create(payload);
+  const result = await wishModel.create(wishPayload);
   return result;
 };
 

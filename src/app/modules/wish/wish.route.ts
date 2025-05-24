@@ -5,7 +5,7 @@ import { Role } from '../user/user.constants';
 const router = express.Router();
 
 router.get('/all', auth(Role.customer), wishController.wishGetBD);
-router.post("/store",wishController.wishStoreBD);
+router.post("/store",auth(Role.customer),wishController.wishStoreBD);
 router.delete("/:id",wishController.deleteWishBD);
 
 

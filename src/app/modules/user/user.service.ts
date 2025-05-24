@@ -28,7 +28,6 @@ const UserGetBD = async (query: Record<string, unknown>) => {
 
 const loginUserBD = async (payload: any) => {
     const {email, password} = payload;
-    console.log(payload)
   const result = await userModel.findOne({ email:email });
   if (!result) {
     throw new ApiCustomError('user email Error', [

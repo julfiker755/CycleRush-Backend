@@ -19,8 +19,8 @@ const wishGetBD = catchAsync(async (req: Request & {user?:any}, res: Response) =
     });
   });
 
-const wishStoreBD = catchAsync(async (req: Request, res: Response) => {
-    const result = await wishService.wishStoreBD(req.body);
+const wishStoreBD = catchAsync(async (req: Request & {user?:any}, res: Response) => {
+    const result = await wishService.wishStoreBD(req.body,req.user);
     sendResponse(res, {
       statusCode: httpStatus.OK,
       success: true,
