@@ -1,4 +1,5 @@
 import QueryBuilder from '../../builder/queryBuilder';
+import ApiCustomError from '../../errors/apiCustomError';
 import { Tuser } from '../user/user.interface';
 import { userModel } from '../user/user.model';
 import { Tcart } from './cart.interface';
@@ -13,7 +14,7 @@ const cartGetBD = async (
   const adminQuery = new QueryBuilder(
     cartModel
       .find({ email: user.email })
-      .populate({path:'productId',select:'-description -images'})
+      .populate({path:'productId',select:'-description'})
       .select('-email')
       .lean(),
     query,
@@ -74,7 +75,13 @@ const cartStoreBD = async (payload:Partial<Tcart>,user:Tuser) => {
     email: user.email,
     productId: payload.productId,
   });
-  if (isExist) throw new Error('Already added to cart product');
+  if (isExist)  throw new ApiCustomError('exsis', [
+    {
+      field: 'exsis',
+      code: 'invalid_type',
+      message: 'Already added to cart product',
+    },
+  ]);
   const result = await cartModel.create(cartPayload);
   return result;
 };
