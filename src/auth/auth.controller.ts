@@ -10,6 +10,7 @@ import { AuthService } from './auth.service';
 import { LoginDto, RegisterDto } from './dto/register.dto';
 import { AuthGuard } from './auth.guard';
 import { Role, Roles } from './roles.decorator';
+import { RolesGuard } from './roles.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -30,7 +31,7 @@ export class AuthController {
     const id = req.user.sub;
     return this.authService.findProfile(id);
   }
-  @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard, RolesGuard)
   @Roles(Role.Admin)
   @Get('all')
   findAll() {

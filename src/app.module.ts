@@ -4,9 +4,8 @@ import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ConfigModule } from '@nestjs/config';
-import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
+import { APP_INTERCEPTOR } from '@nestjs/core';
 import { TransformInterceptor } from './utils/success.interceptor';
-import { RolesGuard } from './auth/roles.guard';
 
 @Module({
   imports: [
@@ -22,10 +21,6 @@ import { RolesGuard } from './auth/roles.guard';
     {
       provide: APP_INTERCEPTOR,
       useClass: TransformInterceptor,
-    },
-    {
-      provide: APP_GUARD,
-      useClass: RolesGuard,
     },
   ],
 })
