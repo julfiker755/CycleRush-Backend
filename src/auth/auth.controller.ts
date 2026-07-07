@@ -1,6 +1,15 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  Request,
+  UseGuards,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { RegisterDto } from './dto/register.dto';
+import { LoginDto, RegisterDto } from './dto/register.dto';
+import { AuthGuard } from './auth.guard';
+import { Role, Roles } from './roles.decorator';
 
 @Controller('auth')
 export class AuthController {
@@ -12,7 +21,19 @@ export class AuthController {
   }
 
   @Post('login')
-  login() {
-    return this.authService.login();
+  login(@Body() loginDto: LoginDto) {
+    return this.authService.login(loginDto);
+  }
+  @UseGuards(AuthGuard)
+  @Get('profile')
+  profile(@Request() req) {
+    const id = req.user.sub;
+    return this.authService.findProfile(id);
+  }
+  @UseGuards(AuthGuard)
+  @Roles(Role.Admin)
+  @Get('all')
+  findAll() {
+    return this.authService.findAll();
   }
 }

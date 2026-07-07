@@ -14,3 +14,11 @@ export class RegisterDto {
   @IsNotEmpty()
   contact_number: string;
 }
+
+export class LoginDto {
+  @IsEmail()
+  email: string;
+
+  @IsNotEmpty()
+  password: string;
+}

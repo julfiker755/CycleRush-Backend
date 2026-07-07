@@ -1,0 +1,17 @@
+  app.useGlobalPipes(
+    new ValidationPipe({
+      exceptionFactory: (errors) => {
+        const formattedErrors = errors.flatMap((error) =>
+          Object.values(error.constraints || {}).map((message) => ({
+            field: error.property,
+            message,
+          })),
+        );
+
+        return new BadRequestException({
+          message: 'Bad Request',
+          errors: formattedErrors,
+        });
+      },
+    }),
+  );
