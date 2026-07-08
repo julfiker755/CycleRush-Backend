@@ -12,12 +12,17 @@ async function bootstrap() {
   if (process.env.NODE_ENV !== 'production') {
     const config = new DocumentBuilder()
       .setTitle('E-commerce API')
-      .setDescription('API documentation for our simple e-commerce application')
       .setVersion('1.0')
+      .addBearerAuth()
       .build();
 
     const document = SwaggerModule.createDocument(app, config);
-    SwaggerModule.setup('api', app, document);
+    SwaggerModule.setup('docs', app, document, {
+      swaggerOptions: {
+        tryItOutEnabled: true,
+        persistAuthorization: true,
+      },
+    });
   }
 
   await app.listen(process.env.PORT ?? 5000);
