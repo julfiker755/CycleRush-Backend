@@ -1,17 +1,19 @@
 import { Injectable } from '@nestjs/common';
 import bcrypt from 'bcrypt';
-import { LoginDto, RegisterDto } from './dto/register.dto';
+import { EmailDto, LoginDto, RegisterDto } from './dto/register.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { Auth } from './schemas/user.schema';
 import { Model } from 'mongoose';
 import { throwCustomErrors } from '../utils/errors.interceptor';
 import { JwtService } from '@nestjs/jwt';
+import { MailerService } from '@nestjs-modules/mailer';
 
 @Injectable()
 export class AuthService {
   constructor(
     @InjectModel(Auth.name) private userModel: Model<Auth>,
     private jwtService: JwtService,
+    private mailerService: MailerService,
   ) {}
   async create(data: RegisterDto) {
     const hash = await bcrypt.hash(data.password, 10);
@@ -76,6 +78,31 @@ export class AuthService {
     const res = await this.userModel.findById(id);
     return {
       message: 'User profile found successfully',
+      data: res,
+    };
+  }
+  async forgotPassword(emailDto: EmailDto) {
+    const res = await this.userModel.findOne({ email: emailDto.email });
+    if (!res) {
+      throwCustomErrors('User not found', [
+        { field: 'email', message: 'User not found' },
+      ]);
+    }
+
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+
+    await this.mailerService.sendMail({
+      to: res.email,
+      subject: 'Welcome!',
+      template: 'password.hbs',
+      context: {
+        name: res.name,
+        code: code,
+        year: new Date().getFullYear(),
+      },
+    });
+    return {
+      message: 'Password reset successfully',
       data: res,
     };
   }
