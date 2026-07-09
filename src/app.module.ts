@@ -8,6 +8,8 @@ import { ConfigModule } from '@nestjs/config';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { TransformInterceptor } from './utils/success.interceptor';
 import { MailerModule } from '@nestjs-modules/mailer';
+import { join } from 'path';
+import { RolesGuard } from './auth/roles.guard';
 
 @Module({
   imports: [
@@ -18,19 +20,19 @@ import { MailerModule } from '@nestjs-modules/mailer';
     MongooseModule.forRoot(process.env.DATABASE_URL as string),
     MailerModule.forRoot({
       transport: {
-        host: 'smtp.example.com',
+        host: 'smtp.gmail.com',
         port: 587,
         secure: false,
         auth: {
-          user: 'username',
-          pass: 'password',
+          user: 'julfikerahaman651@gmail.com',
+          pass: 'tdat xacu jdci mqzw',
         },
       },
       defaults: {
         from: '"No Reply" <noreply@example.com>',
       },
       template: {
-        dir: __dirname + '/templates',
+        dir: join(process.cwd(), 'src', 'templates'),
         adapter: new HandlebarsAdapter(),
         options: {
           strict: true,
@@ -44,6 +46,10 @@ import { MailerModule } from '@nestjs-modules/mailer';
     {
       provide: APP_INTERCEPTOR,
       useClass: TransformInterceptor,
+    },
+    {
+      provide: 'APP_GUARD',
+      useClass: RolesGuard,
     },
   ],
 })
