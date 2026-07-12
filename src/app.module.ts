@@ -2,14 +2,14 @@ import { HandlebarsAdapter } from '@nestjs-modules/mailer/adapters/handlebars.ad
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { AuthModule } from './auth/auth.module';
+import { AuthModule } from './modules/auth/auth.module';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ConfigModule } from '@nestjs/config';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { TransformInterceptor } from './utils/success.interceptor';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { join } from 'path';
-import { RolesGuard } from './auth/roles.guard';
+import { RolesGuard } from './modules/auth/roles.guard';
 
 @Module({
   imports: [

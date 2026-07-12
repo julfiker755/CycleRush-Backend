@@ -3,12 +3,13 @@ import { EmailDto, LoginDto, RegisterDto } from './dto/register.dto';
 import { InjectConnection, InjectModel } from '@nestjs/mongoose';
 import { Auth } from './schemas/user.schema';
 import { Connection, Model, Types } from 'mongoose';
-import { throwCustomErrors } from '../utils/errors.interceptor';
+import { throwCustomErrors } from '../../utils/errors.interceptor';
 import { JwtService } from '@nestjs/jwt';
 import { MailerService } from '@nestjs-modules/mailer';
 import { Profile } from './schemas/profile.schema';
 import bcrypt from 'bcrypt';
 import { updateDto } from './dto/update-profile.dto';
+import { StorageService } from '../../utils/storage.service';
 
 @Injectable()
 export class AuthService {
@@ -21,6 +22,7 @@ export class AuthService {
     private readonly connection: Connection,
     private jwtService: JwtService,
     private mailerService: MailerService,
+    private StorageService: StorageService,
   ) {}
   async create(data: RegisterDto) {
     const hash = await bcrypt.hash(data.password, 10);
@@ -118,9 +120,16 @@ export class AuthService {
     };
   }
   async profileUpdate(id: any, body: updateDto, avater: File) {
-    console.log(body);
-    console.log(avater);
-    return id;
+    const res = await this.profileModel
+      .findOne({ user: new Types.ObjectId(id) })
+      .populate(
+        'user',
+        '-password -is_email_verified -is_phone_verified -created_at -updated_at -role',
+      )
+      .select('-created_at -updated_at')
+      .lean()
+      .exec();
+    return res;
   }
   async forgotPassword(emailDto: EmailDto) {
     const res = await this.authModel.findOne({ email: emailDto.email });
