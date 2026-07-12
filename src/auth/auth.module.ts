@@ -1,3 +1,4 @@
+import { Profile, ProfileSchema } from './schemas/profile.schema';
 import { Module } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
@@ -7,7 +8,10 @@ import { JwtModule } from '@nestjs/jwt';
 
 @Module({
   imports: [
-    MongooseModule.forFeature([{ name: Auth.name, schema: AuthSchema }]),
+    MongooseModule.forFeature([
+      { name: Auth.name, schema: AuthSchema },
+      { name: Profile.name, schema: ProfileSchema },
+    ]),
     JwtModule.register({
       global: true,
       secret: process.env.JWT_SECRET,

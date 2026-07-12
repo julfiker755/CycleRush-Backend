@@ -1,28 +1,48 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { HydratedDocument } from 'mongoose';
-import { Role } from '../roles.decorator';
+import { HydratedDocument, Types } from 'mongoose';
+import { Auth } from './user.schema';
 
-export type AuthDocument = HydratedDocument<Auth>;
+export type ProfileDocument = HydratedDocument<Profile>;
 
-@Schema({ timestamps: true })
-export class Auth {
+@Schema({
+  timestamps: {
+    createdAt: 'created_at',
+    updatedAt: 'updated_at',
+  },
+  versionKey: false,
+})
+export class Profile {
+  @Prop({
+    type: Types.ObjectId,
+    ref: Auth.name,
+    required: true,
+    unique: true,
+  })
+  user: Types.ObjectId;
+
   @Prop({ required: true })
   name: string;
 
-  @Prop({ required: true, unique: true })
-  email: string;
+  @Prop({ default: null })
+  avatar: string;
 
-  @Prop({ required: true })
-  contact_number: string;
+  @Prop({ default: null })
+  bio: string;
 
-  @Prop({ default: Role.User })
-  role: string;
+  @Prop({ default: null })
+  date_of_birth: Date;
 
-  @Prop({ required: true })
-  password: string;
+  @Prop({ type: null })
+  present_address: string;
 
-  @Prop({ default: false })
-  isEmailVerified: boolean;
+  @Prop({ type: null })
+  permanent_address: string;
+
+  @Prop({ type: Number })
+  latitude: number;
+
+  @Prop({ type: Number })
+  longitude: number;
 }
 
-export const AuthSchema = SchemaFactory.createForClass(Auth);
+export const ProfileSchema = SchemaFactory.createForClass(Profile);

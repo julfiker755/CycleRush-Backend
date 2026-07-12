@@ -4,11 +4,14 @@ import { Role } from '../roles.decorator';
 
 export type AuthDocument = HydratedDocument<Auth>;
 
-@Schema({ timestamps: true })
+@Schema({
+  timestamps: {
+    createdAt: 'created_at',
+    updatedAt: 'updated_at',
+  },
+  versionKey: false,
+})
 export class Auth {
-  @Prop({ required: true })
-  name: string;
-
   @Prop({ required: true, unique: true })
   email: string;
 
@@ -22,7 +25,10 @@ export class Auth {
   password: string;
 
   @Prop({ default: false })
-  isEmailVerified: boolean;
+  is_email_verified: boolean;
+
+  @Prop({ default: false })
+  is_phone_verified: boolean;
 }
 
 export const AuthSchema = SchemaFactory.createForClass(Auth);
