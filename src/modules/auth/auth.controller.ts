@@ -51,7 +51,6 @@ export class AuthController {
     @Body() body: updateDto,
   ) {
     const id = req.user.sub;
-    console.log(body);
     return this.authService.profileUpdate(id, body, avatar);
   }
 
@@ -67,4 +66,8 @@ export class AuthController {
   forgotPassword(@Body() emailDto: EmailDto) {
     return this.authService.forgotPassword(emailDto);
   }
+  // @Post('varify-otp')
+  // forgotPassword(@Body() emailDto: EmailDto) {
+  //   return this.authService.forgotPassword(emailDto);
+  // }
 }

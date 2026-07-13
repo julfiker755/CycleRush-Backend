@@ -29,6 +29,9 @@ export class Auth {
 
   @Prop({ default: false })
   is_phone_verified: boolean;
+
+  @Prop({ default: false })
+  otp?: string;
 }
 
 export const AuthSchema = SchemaFactory.createForClass(Auth);
