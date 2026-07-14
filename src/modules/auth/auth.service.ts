@@ -1,5 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import { EmailDto, LoginDto, RegisterDto } from './dto/register.dto';
+import {
+  EmailDto,
+  LoginDto,
+  NewPasswordDto,
+  OtpDto,
+  RegisterDto,
+} from './dto/register.dto';
 import { InjectConnection, InjectModel } from '@nestjs/mongoose';
 import { Auth } from './schemas/user.schema';
 import { Connection, Model, Types } from 'mongoose';
@@ -179,7 +185,59 @@ export class AuthService {
 
     return {
       message: 'Password reset successfully',
-      data: profile?.name,
+      data: user?.email,
     };
+  }
+
+  async verifyOtp(dto: OtpDto) {
+    const user = await this.authModel.findOne({ email: dto.email });
+
+    if (!user) {
+      throwCustomErrors('User not found', [
+        { field: 'email', message: 'User not found' },
+      ]);
+    }
+
+    if (user.otp !== dto.otp) {
+      throwCustomErrors('Invalid OTP', [
+        { field: 'otp', message: 'Invalid OTP' },
+      ]);
+    }
+
+    const token = this.jwtService.sign({
+      email: user.email,
+    });
+
+    return {
+      message: 'OTP verified successfully',
+      data: { token },
+    };
+  }
+  async newPassword(data: NewPasswordDto) {
+    if (data?.password === data?.confirm_password) {
+      throwCustomErrors('Validation failed', [
+        {
+          field: 'confirm_password',
+          message: 'Passwords do not match',
+        },
+      ]);
+    }
+
+    const { email } = await this.jwtService.verifyAsync(data.token);
+
+    const hash = await bcrypt.hash(data?.password, 10);
+
+    await this.authModel.findOneAndUpdate(
+      { email },
+      {
+        $set: {
+          password: hash,
+          otp: '',
+        },
+      },
+      { new: true },
+    );
+
+    return { message: 'Password updated successfully' };
   }
 }
