@@ -59,3 +59,20 @@ export class NewPasswordDto {
   @IsNotEmpty()
   token: string;
 }
+
+export class ChangePasswordDto {
+  @IsString()
+  @IsNotEmpty()
+  @MinLength(6)
+  current_password: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @MinLength(6)
+  password: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @MinLength(6)
+  confirm_password: string;
+}

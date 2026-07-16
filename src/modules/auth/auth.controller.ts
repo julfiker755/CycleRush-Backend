@@ -11,6 +11,7 @@ import {
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import {
+  ChangePasswordDto,
   EmailDto,
   LoginDto,
   NewPasswordDto,
@@ -37,6 +38,10 @@ export class AuthController {
   @Post('login')
   login(@Body() loginDto: LoginDto) {
     return this.authService.login(loginDto);
+  }
+  @Post('google')
+  google() {
+    return this.authService.google();
   }
   @ApiBearerAuth()
   @UseGuards(AuthGuard)
@@ -79,5 +84,13 @@ export class AuthController {
   @Post('new-password')
   newPassword(@Body() data: NewPasswordDto) {
     return this.authService.newPassword(data);
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard)
+  @Patch('change-password')
+  changePassword(@Request() req, @Body() body:ChangePasswordDto) {
+    const id = req.user.sub;
+    return this.authService.changePassword(id, body);
   }
 }

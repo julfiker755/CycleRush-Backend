@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import {
+  ChangePasswordDto,
   EmailDto,
   LoginDto,
   NewPasswordDto,
@@ -101,6 +102,10 @@ export class AuthService {
     };
   }
 
+  async google() {
+    // goglle login 
+  }
+
   async findAll() {
     const res = await this.authModel.find();
 
@@ -184,8 +189,10 @@ export class AuthService {
     });
 
     return {
-      message: 'Password reset successfully',
-      data: user?.email,
+      message: "We've sent an OTP to your email",
+      data: {
+        email: user?.email,
+      },
     };
   }
 
@@ -214,7 +221,7 @@ export class AuthService {
     };
   }
   async newPassword(data: NewPasswordDto) {
-    if (data?.password === data?.confirm_password) {
+    if (data?.password != data?.confirm_password) {
       throwCustomErrors('Validation failed', [
         {
           field: 'confirm_password',
@@ -238,6 +245,35 @@ export class AuthService {
       { new: true },
     );
 
-    return { message: 'Password updated successfully' };
+    return { message: 'Password updated successfully', data: null };
+  }
+  async changePassword(id: string, data: ChangePasswordDto) {
+    const user = await this.authModel.findById(id);
+    if (!user) {
+      throwCustomErrors('User not found', [
+        { field: 'id', message: 'No user found' },
+      ]);
+    }
+
+    const isMatch = await bcrypt.compare(data.current_password, user.password);
+    if (!isMatch) {
+      throwCustomErrors('Validation failed', [
+        { field: 'password', message: 'Current password is wrong' },
+      ]);
+    }
+
+    if (data.password !== data.confirm_password) {
+      throwCustomErrors('Validation failed', [
+        { field: 'confirm_password', message: 'Passwords do not match' },
+      ]);
+    }
+
+    const hashedPassword = await bcrypt.hash(data.password, 10);
+
+    const updatedUser = await this.authModel
+      .findByIdAndUpdate(id, { password: hashedPassword }, { new: true })
+      .select('-password');
+
+    return { message: 'Password updated successfully', data: updatedUser };
   }
 }
