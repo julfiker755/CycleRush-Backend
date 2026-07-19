@@ -15,13 +15,13 @@ export class Auth {
   @Prop({ required: true, unique: true })
   email: string;
 
-  @Prop({ required: true })
+  @Prop({ required: false })
   contact_number: string;
 
   @Prop({ default: Role.User })
   role: string;
 
-  @Prop({ required: true })
+  @Prop({ required: false })
   password: string;
 
   @Prop({ default: false })
@@ -32,6 +32,12 @@ export class Auth {
 
   @Prop({ default: false })
   otp?: string;
+
+  @Prop({
+    enum: ['normal', 'google', 'facebook', 'apple'],
+    default: 'normal',
+  })
+  provider: string;
 }
 
 export const AuthSchema = SchemaFactory.createForClass(Auth);

@@ -13,10 +13,10 @@ import { RolesGuard } from './modules/auth/roles.guard';
 
 @Module({
   imports: [
-    AuthModule,
     ConfigModule.forRoot({
       isGlobal: true,
     }),
+    AuthModule,
     MongooseModule.forRoot(process.env.DATABASE_URL as string),
     MailerModule.forRoot({
       transport: {
@@ -24,8 +24,8 @@ import { RolesGuard } from './modules/auth/roles.guard';
         port: 587,
         secure: false,
         auth: {
-          user: 'julfikerahaman651@gmail.com',
-          pass: 'tdat xacu jdci mqzw',
+          user: process.env.MAILER_EMAIL,
+          pass: process.env.MAILER_PASSWORD,
         },
       },
       defaults: {

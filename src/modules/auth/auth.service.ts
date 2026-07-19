@@ -81,6 +81,10 @@ export class AuthService {
       ]);
     }
 
+    if (user?.provider === 'google') {
+      throwCustomErrors('This account uses Google Sign-In only', []);
+    }
+
     const isPasswordValid = await bcrypt.compare(data.password, user.password);
     if (!isPasswordValid) {
       throwCustomErrors('Invalid password', [
@@ -102,8 +106,49 @@ export class AuthService {
     };
   }
 
-  async google() {
-    // goglle login 
+  async googleLogin(profile: any) {
+    const { email, firstName, lastName, picture } = profile;
+
+    const session = await this.connection.startSession();
+    try {
+      const user = await session.withTransaction(async () => {
+        const existing = await this.authModel
+          .findOne({ email })
+          .session(session);
+
+        if (existing && existing.provider == 'normal') {
+          throwCustomErrors('This email is registered with normal login', []);
+        }
+
+        const updatedUser = await this.authModel.findOneAndUpdate(
+          { email },
+          { $set: { provider: 'google', is_email_verified: true } },
+          { upsert: true, new: true, session },
+        );
+
+        await this.profileModel.findOneAndUpdate(
+          { user: updatedUser._id },
+          {
+            $set: {
+              name: `${firstName ?? ''} ${lastName ?? ''}`.trim(),
+              avatar: picture,
+            },
+          },
+          { upsert: true, new: true, session },
+        );
+
+        return updatedUser;
+      });
+
+      const token = this.jwtService.sign({ sub: user._id, role: user.role });
+
+      return {
+        message: 'User logged in successfully with Google',
+        data: { token, user: user },
+      };
+    } finally {
+      await session.endSession();
+    }
   }
 
   async findAll() {

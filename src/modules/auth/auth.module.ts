@@ -6,6 +6,8 @@ import { Auth, AuthSchema } from './schemas/user.schema';
 import { MongooseModule } from '@nestjs/mongoose';
 import { JwtModule } from '@nestjs/jwt';
 import { StorageService } from '../../utils/storage.service';
+import { GoogleStrategy } from '../../utils/google.strategy';
+import { PassportModule } from '@nestjs/passport';
 
 @Module({
   imports: [
@@ -18,8 +20,9 @@ import { StorageService } from '../../utils/storage.service';
       secret: process.env.JWT_SECRET,
       signOptions: { expiresIn: '1h' },
     }),
+    PassportModule,
   ],
   controllers: [AuthController],
-  providers: [AuthService, StorageService],
+  providers: [AuthService, StorageService, GoogleStrategy],
 })
 export class AuthModule {}

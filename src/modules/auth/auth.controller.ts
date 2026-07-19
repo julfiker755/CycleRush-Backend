@@ -21,9 +21,15 @@ import {
 import { AuthGuard } from './auth.guard';
 import { Role, Roles } from './roles.decorator';
 import { RolesGuard } from './roles.guard';
-import { ApiBearerAuth, ApiConsumes, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiConsumes,
+  ApiExcludeEndpoint,
+  ApiTags,
+} from '@nestjs/swagger';
 import { updateDto } from './dto/update-profile.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { GoogleAuthGuard } from './google-auth.guard';
 
 @ApiTags('Authentication')
 @Controller('auth')
@@ -39,9 +45,16 @@ export class AuthController {
   login(@Body() loginDto: LoginDto) {
     return this.authService.login(loginDto);
   }
-  @Post('google')
-  google() {
-    return this.authService.google();
+
+  @Get('google')
+  @UseGuards(GoogleAuthGuard)
+  googleLogin() {}
+
+  @ApiExcludeEndpoint()
+  @Get('google/callback')
+  @UseGuards(GoogleAuthGuard)
+  googleLoginCallback(@Request() req) {
+    return this.authService.googleLogin(req.user);
   }
   @ApiBearerAuth()
   @UseGuards(AuthGuard)
@@ -89,7 +102,7 @@ export class AuthController {
   @ApiBearerAuth()
   @UseGuards(AuthGuard)
   @Patch('change-password')
-  changePassword(@Request() req, @Body() body:ChangePasswordDto) {
+  changePassword(@Request() req, @Body() body: ChangePasswordDto) {
     const id = req.user.sub;
     return this.authService.changePassword(id, body);
   }
