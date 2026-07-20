@@ -151,15 +151,6 @@ export class AuthService {
     }
   }
 
-  async findAll() {
-    const res = await this.authModel.find();
-
-    return {
-      message: 'All users found successfully',
-      data: res,
-    };
-  }
-
   async findProfile(id: any) {
     const res = await this.profileModel
       .findOne({ user: new Types.ObjectId(id) })

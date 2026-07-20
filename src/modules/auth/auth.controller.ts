@@ -78,13 +78,6 @@ export class AuthController {
     return this.authService.profileUpdate(id, body, avatar);
   }
 
-  @ApiBearerAuth()
-  @UseGuards(AuthGuard, RolesGuard)
-  @Roles(Role.Admin)
-  @Get('all')
-  findAll() {
-    return this.authService.findAll();
-  }
 
   @Post('forgot-password')
   forgotPassword(@Body() emailDto: EmailDto) {

@@ -10,6 +10,7 @@ import { TransformInterceptor } from './utils/success.interceptor';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { join } from 'path';
 import { RolesGuard } from './modules/auth/roles.guard';
+import { UserModule } from './modules/admin/user/user.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { RolesGuard } from './modules/auth/roles.guard';
       isGlobal: true,
     }),
     AuthModule,
+    UserModule,
     MongooseModule.forRoot(process.env.DATABASE_URL as string),
     MailerModule.forRoot({
       transport: {
