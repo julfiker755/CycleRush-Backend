@@ -1,17 +1,8 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Patch,
-  Param,
-  Delete,
-  UseGuards,
-} from '@nestjs/common';
-import { UserService } from './user.service';
+import { Controller, Get, Post, Body, UseGuards } from '@nestjs/common';
+import { UserService } from '@/modules/admin/user/user.service';
 import { ApiBearerAuth } from '@nestjs/swagger';
-import { AuthGuard } from '@/modules/auth/auth.guard';
-import { RolesGuard } from '@/modules/auth/roles.guard';
+import { AuthGuard } from '@/modules/auth/guards/auth.guard';
+import { RolesGuard } from '@/modules/auth/guards/roles.guard';
 import { Role, Roles } from '@/modules/auth/roles.decorator';
 
 @Controller('user')

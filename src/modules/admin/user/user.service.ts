@@ -1,36 +1,35 @@
-import { Profile } from '@/modules/auth/schemas/profile.schema';
-import { Auth } from '@/modules/auth/schemas/user.schema';
 import { Injectable } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { PrismaService } from '@/prisma/prisma.service';
 
 @Injectable()
 export class UserService {
-  constructor(
-    @InjectModel(Auth.name)
-    private authModel: Model<Auth>,
-    @InjectModel(Profile.name)
-    private profileModel: Model<Profile>,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   create(createUserDto: any) {
     return 'This action adds a new user';
   }
 
   async findAll() {
-    const user = await this.profileModel.find();
-    return user;
+    const users = await this.prisma.profile.findMany({
+      include: { user: true },
+    });
+    return users;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} user`;
+  findOne(id: string) {
+    return this.prisma.user.findUnique({
+      where: { id },
+      include: { profile: true },
+    });
   }
 
-  update(id: number, updateUserDto: any) {
+  update(id: string, updateUserDto: any) {
     return `This action updates a #${id} user`;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} user`;
+  remove(id: string) {
+    return this.prisma.user.delete({
+      where: { id },
+    });
   }
 }
