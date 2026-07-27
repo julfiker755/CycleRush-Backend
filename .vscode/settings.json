@@ -1,0 +1,12 @@
+{
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "eslint.useFlatConfig": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "always"
+  },
+   "[prisma]": {
+    "editor.defaultFormatter": "Prisma.prisma"
+  },
+  "editor.semanticHighlighting.enabled": false
+}

@@ -9,7 +9,7 @@ import {
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
-import { AuthService } from './auth.service';
+import { AuthService } from '@/modules/auth/auth.service';
 import {
   ChangePasswordDto,
   EmailDto,
@@ -17,19 +17,17 @@ import {
   NewPasswordDto,
   OtpDto,
   RegisterDto,
-} from './dto/register.dto';
-import { AuthGuard } from './auth.guard';
-import { Role, Roles } from './roles.decorator';
-import { RolesGuard } from './roles.guard';
+} from '@/modules/auth/dto/register.dto';
+import { AuthGuard } from '@/modules/auth/guards/auth.guard';
+import { updateDto } from '@/modules/auth/dto/update-profile.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { GoogleAuthGuard } from '@/modules/auth/google-auth.guard';
 import {
   ApiBearerAuth,
   ApiConsumes,
   ApiExcludeEndpoint,
   ApiTags,
 } from '@nestjs/swagger';
-import { updateDto } from './dto/update-profile.dto';
-import { FileInterceptor } from '@nestjs/platform-express';
-import { GoogleAuthGuard } from './google-auth.guard';
 
 @ApiTags('Authentication')
 @Controller('auth')
@@ -56,6 +54,7 @@ export class AuthController {
   googleLoginCallback(@Request() req) {
     return this.authService.googleLogin(req.user);
   }
+
   @ApiBearerAuth()
   @UseGuards(AuthGuard)
   @Get('profile')
@@ -78,15 +77,16 @@ export class AuthController {
     return this.authService.profileUpdate(id, body, avatar);
   }
 
-
   @Post('forgot-password')
   forgotPassword(@Body() emailDto: EmailDto) {
     return this.authService.forgotPassword(emailDto);
   }
-  @Post('varify-otp')
-  varifyOtp(@Body() otpDto: OtpDto) {
+
+  @Post('verify-otp')
+  verifyOtp(@Body() otpDto: OtpDto) {
     return this.authService.verifyOtp(otpDto);
   }
+
   @Post('new-password')
   newPassword(@Body() data: NewPasswordDto) {
     return this.authService.newPassword(data);

@@ -1,25 +1,24 @@
 import { HandlebarsAdapter } from '@nestjs-modules/mailer/adapters/handlebars.adapter';
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
-import { AuthModule } from './modules/auth/auth.module';
-import { MongooseModule } from '@nestjs/mongoose';
+import { AppController } from '@/app.controller';
+import { AppService } from '@/app.service';
+import { AuthModule } from '@/modules/auth/auth.module';
+import { PrismaModule } from '@/prisma/prisma.module';
 import { ConfigModule } from '@nestjs/config';
 import { APP_INTERCEPTOR } from '@nestjs/core';
-import { TransformInterceptor } from './utils/success.interceptor';
+import { TransformInterceptor } from '@/utils/success.interceptor';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { join } from 'path';
-import { RolesGuard } from './modules/auth/roles.guard';
-import { UserModule } from './modules/admin/user/user.module';
+import { UserModule } from '@/modules/admin/user/user.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
     }),
+    PrismaModule,
     AuthModule,
     UserModule,
-    MongooseModule.forRoot(process.env.DATABASE_URL as string),
     MailerModule.forRoot({
       transport: {
         host: 'smtp.gmail.com',
@@ -48,10 +47,6 @@ import { UserModule } from './modules/admin/user/user.module';
     {
       provide: APP_INTERCEPTOR,
       useClass: TransformInterceptor,
-    },
-    {
-      provide: 'APP_GUARD',
-      useClass: RolesGuard,
     },
   ],
 })

@@ -6,83 +6,88 @@ import {
   NewPasswordDto,
   OtpDto,
   RegisterDto,
-} from './dto/register.dto';
-import { InjectConnection, InjectModel } from '@nestjs/mongoose';
-import { Auth } from './schemas/user.schema';
-import { Connection, Model, Types } from 'mongoose';
-import { throwCustomErrors } from '../../utils/errors.interceptor';
+} from '@/modules/auth/dto/register.dto';
+import { throwCustomErrors } from '@/utils/errors.interceptor';
 import { JwtService } from '@nestjs/jwt';
 import { MailerService } from '@nestjs-modules/mailer';
-import { Profile } from './schemas/profile.schema';
 import bcrypt from 'bcrypt';
-import { updateDto } from './dto/update-profile.dto';
-import { StorageService } from '../../utils/storage.service';
-import { fileName } from '../../utils/fun.utils';
+import { updateDto } from '@/modules/auth/dto/update-profile.dto';
+import { StorageService } from '@/utils/storage.service';
+import { fileName } from '@/utils/fun.utils';
+import { PrismaService } from '@/prisma/prisma.service';
 
 @Injectable()
 export class AuthService {
   constructor(
-    @InjectModel(Auth.name)
-    private authModel: Model<Auth>,
-    @InjectModel(Profile.name)
-    private profileModel: Model<Profile>,
-    @InjectConnection()
-    private readonly connection: Connection,
+    private readonly prisma: PrismaService,
     private jwtService: JwtService,
     private mailerService: MailerService,
     private storageService: StorageService,
   ) {}
+
   async create(data: RegisterDto) {
     const hash = await bcrypt.hash(data.password, 10);
-    const userPaylod = {
-      ...data,
-      password: hash,
-    };
 
-    const existingUser = await this.authModel.findOne({ email: data.email });
+    const existingUser = await this.prisma.user.findUnique({
+      where: { email: data.email },
+    });
+
     if (existingUser) {
       throwCustomErrors('Email already exists', [
         { field: 'email', message: 'Email already exists' },
       ]);
     }
 
-    const session = await this.connection.startSession();
-
-    try {
-      const userData = await session.withTransaction(async () => {
-        const [user] = await this.authModel.create([{ ...userPaylod }], {
-          session,
-        });
-
-        await this.profileModel.create(
-          [{ user: user._id, name: userPaylod.name }],
-          {
-            session,
+    const userData = await this.prisma.user.create({
+      data: {
+        email: data.email,
+        contact_number: data.contact_number,
+        password: hash,
+        profile: {
+          create: {
+            name: data.name,
           },
-        );
+        },
+      },
+      select: {
+        id: true,
+        email: true,
+        contact_number: true,
+        role: true,
+        profile: {
+          select: {
+            name: true,
+            avatar: true,
+          },
+        },
+      },
+    });
 
-        return user;
-      });
-
-      return {
-        message: 'User registered successfully',
-        data: userData,
-      };
-    } finally {
-      await session.endSession();
-    }
+    return {
+      message: 'User registered successfully',
+      data: userData,
+    };
   }
 
   async login(data: LoginDto) {
-    const user = await this.authModel.findOne({ email: data.email });
+    const user = await this.prisma.user.findUnique({
+      where: { email: data.email },
+    });
+
     if (!user) {
       throwCustomErrors('User not found', [
         { field: 'email', message: 'User not found' },
       ]);
     }
 
-    if (user?.provider === 'google') {
+    if (user.provider === 'google') {
       throwCustomErrors('This account uses Google Sign-In only', []);
+    }
+
+    if (!user.password) {
+      throwCustomErrors('Invalid password', [
+        { field: 'password', message: 'Invalid password' },
+      ]);
     }
 
     const isPasswordValid = await bcrypt.compare(data.password, user.password);
@@ -93,15 +98,17 @@ export class AuthService {
     }
 
     const token = this.jwtService.sign({
-      sub: user._id,
+      sub: user.id,
       role: user.role,
     });
+
+    const { password, ...rest } = user;
 
     return {
       message: 'User login in successfully',
       data: {
         token: token,
-        user: user,
+        user: rest,
       },
     };
   }
@@ -109,78 +116,97 @@ export class AuthService {
   async googleLogin(profile: any) {
     const { email, firstName, lastName, picture } = profile;
 
-    const session = await this.connection.startSession();
-    try {
-      const user = await session.withTransaction(async () => {
-        const existing = await this.authModel
-          .findOne({ email })
-          .session(session);
+    const existing = await this.prisma.user.findUnique({
+      where: { email },
+    });
 
-        if (existing && existing.provider == 'normal') {
-          throwCustomErrors('This email is registered with normal login', []);
-        }
+    if (existing && existing.provider === 'normal') {
+      throwCustomErrors('This email is registered with normal login', []);
+    }
 
-        const updatedUser = await this.authModel.findOneAndUpdate(
-          { email },
-          { $set: { provider: 'google', is_email_verified: true } },
-          { upsert: true, new: true, session },
-        );
+    const fullName = `${firstName ?? ''} ${lastName ?? ''}`.trim();
 
-        await this.profileModel.findOneAndUpdate(
-          { user: updatedUser._id },
-          {
-            $set: {
-              name: `${firstName ?? ''} ${lastName ?? ''}`.trim(),
+    const user = await this.prisma.user.upsert({
+      where: { email },
+      update: {
+        provider: 'google',
+        is_email_verified: true,
+        profile: {
+          upsert: {
+            create: {
+              name: fullName,
+              avatar: picture,
+            },
+            update: {
+              name: fullName,
               avatar: picture,
             },
           },
-          { upsert: true, new: true, session },
-        );
+        },
+      },
+      create: {
+        email,
+        provider: 'google',
+        is_email_verified: true,
+        profile: {
+          create: {
+            name: fullName,
+            avatar: picture,
+          },
+        },
+      },
+      include: {
+        profile: true,
+      },
+    });
 
-        return updatedUser;
-      });
+    const token = this.jwtService.sign({ sub: user.id, role: user.role });
 
-      const token = this.jwtService.sign({ sub: user._id, role: user.role });
-
-      return {
-        message: 'User logged in successfully with Google',
-        data: { token, user: user },
-      };
-    } finally {
-      await session.endSession();
-    }
+    return {
+      message: 'User logged in successfully with Google',
+      data: { token, user: user },
+    };
   }
 
-  async findProfile(id: any) {
-    const res = await this.profileModel
-      .findOne({ user: new Types.ObjectId(id) })
-      .populate(
-        'user',
-        '-password -is_email_verified -is_phone_verified -created_at -updated_at -role',
-      )
-      .select('-created_at -updated_at')
-      .lean()
-      .exec();
+  async findProfile(id: string) {
+    const profile = await this.prisma.profile.findUnique({
+      where: { userId: id },
+      include: {
+        user: {
+          select: {
+            id: true,
+            email: true,
+            contact_number: true,
+            provider: true,
+          },
+        },
+      },
+    });
 
     return {
       message: 'User profile found successfully',
-      data: res,
+      data: profile,
     };
   }
+
   async profileUpdate(id: string, body: updateDto, avatar?: any) {
-    const user = new Types.ObjectId(id);
-    const profile = await this.profileModel.findOne({ user }).lean();
+    const profile = await this.prisma.profile.findUnique({
+      where: { userId: id },
+    });
 
     if (avatar) {
       const { url } = await this.storageService.upload('user', avatar);
       body.avatar = url;
     }
 
-    const updated = await this.profileModel.findOneAndUpdate(
-      { user },
-      { $set: body },
-      { new: true },
-    );
+    const updateData: Record<any, any> = {
+      ...body,
+    };
+
+    const updated = await this.prisma.profile.update({
+      where: { userId: id },
+      data: updateData,
+    });
 
     if (avatar && profile?.avatar) {
       void this.storageService.remove('user', fileName(profile.avatar));
@@ -191,9 +217,11 @@ export class AuthService {
       data: updated,
     };
   }
+
   async forgotPassword(emailDto: EmailDto) {
-    const user = await this.authModel.findOne({
-      email: emailDto.email,
+    const user = await this.prisma.user.findUnique({
+      where: { email: emailDto.email },
+      include: { profile: true },
     });
 
     if (!user) {
@@ -201,39 +229,37 @@ export class AuthService {
         { field: 'email', message: 'User not found' },
       ]);
     }
-    const profile = await this.profileModel.findOne({
-      user: new Types.ObjectId(user._id),
-    });
 
     const code = Math.floor(100000 + Math.random() * 900000).toString();
 
     await this.mailerService.sendMail({
-      to: user?.email,
+      to: user.email,
       subject: 'Welcome!',
       template: 'password.hbs',
       context: {
-        name: profile?.name,
+        name: user.profile?.name,
         code: code,
         year: new Date().getFullYear(),
       },
     });
 
-    await this.authModel.findByIdAndUpdate(user._id, {
-      $set: {
-        otp: code,
-      },
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: { otp: code },
     });
 
     return {
       message: "We've sent an OTP to your email",
       data: {
-        email: user?.email,
+        email: user.email,
       },
     };
   }
 
   async verifyOtp(dto: OtpDto) {
-    const user = await this.authModel.findOne({ email: dto.email });
+    const user = await this.prisma.user.findUnique({
+      where: { email: dto.email },
+    });
 
     if (!user) {
       throwCustomErrors('User not found', [
@@ -256,8 +282,9 @@ export class AuthService {
       data: { token },
     };
   }
+
   async newPassword(data: NewPasswordDto) {
-    if (data?.password != data?.confirm_password) {
+    if (data?.password !== data?.confirm_password) {
       throwCustomErrors('Validation failed', [
         {
           field: 'confirm_password',
@@ -267,27 +294,33 @@ export class AuthService {
     }
 
     const { email } = await this.jwtService.verifyAsync(data.token);
+    const hash = await bcrypt.hash(data.password, 10);
 
-    const hash = await bcrypt.hash(data?.password, 10);
-
-    await this.authModel.findOneAndUpdate(
-      { email },
-      {
-        $set: {
-          password: hash,
-          otp: '',
-        },
+    await this.prisma.user.update({
+      where: { email },
+      data: {
+        password: hash,
+        otp: '',
       },
-      { new: true },
-    );
+    });
 
     return { message: 'Password updated successfully', data: null };
   }
+
   async changePassword(id: string, data: ChangePasswordDto) {
-    const user = await this.authModel.findById(id);
+    const user = await this.prisma.user.findUnique({
+      where: { id },
+    });
+
     if (!user) {
       throwCustomErrors('User not found', [
         { field: 'id', message: 'No user found' },
+      ]);
+    }
+
+    if (!user.password) {
+      throwCustomErrors('Validation failed', [
+        { field: 'password', message: 'Current password is wrong' },
       ]);
     }
 
@@ -306,9 +339,21 @@ export class AuthService {
 
     const hashedPassword = await bcrypt.hash(data.password, 10);
 
-    const updatedUser = await this.authModel
-      .findByIdAndUpdate(id, { password: hashedPassword }, { new: true })
-      .select('-password');
+    const updatedUser = await this.prisma.user.update({
+      where: { id },
+      data: { password: hashedPassword },
+      select: {
+        id: true,
+        email: true,
+        contact_number: true,
+        role: true,
+        is_email_verified: true,
+        is_phone_verified: true,
+        provider: true,
+        created_at: true,
+        updated_at: true,
+      },
+    });
 
     return { message: 'Password updated successfully', data: updatedUser };
   }
