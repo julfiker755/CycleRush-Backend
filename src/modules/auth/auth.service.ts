@@ -239,7 +239,10 @@ export class AuthService {
       subject: 'Welcome!',
       template: 'password.hbs',
       context: {
+<<<<<<< HEAD
         frontendurl: frontendurl,
+=======
+>>>>>>> 302ce8c28eff314e4e48ae3bfbd4c09b72cf1a41
         name: user.profile?.name,
         code: code,
         year: new Date().getFullYear(),
