@@ -232,11 +232,14 @@ export class AuthService {
 
     const code = Math.floor(100000 + Math.random() * 900000).toString();
 
+    const frontendurl = `${process.env.FRONTEND_URL}/auth/varify-otp?email=${user.email}`;
+
     await this.mailerService.sendMail({
       to: user.email,
       subject: 'Welcome!',
       template: 'password.hbs',
       context: {
+        frontendurl: frontendurl,
         name: user.profile?.name,
         code: code,
         year: new Date().getFullYear(),
